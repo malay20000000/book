@@ -238,5 +238,5 @@ def main():
         fig_ratings.update_layout(showlegend=False)
         st.plotly_chart(fig_ratings, use_container_width=True)
 
-if _name_ == "_main_":
-    main()
+ if __name__ == "__main__":
+     main()
