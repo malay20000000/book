@@ -59,7 +59,7 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 class BookRecommender:
-    def _init_(self, data):
+    def __init__(self, data):
         self.df = pd.DataFrame(data)
         self.df['title'] = self.df['title'].str.strip()
         self.df['authors'] = self.df['authors'].str.strip()
@@ -238,5 +238,5 @@ def main():
         fig_ratings.update_layout(showlegend=False)
         st.plotly_chart(fig_ratings, use_container_width=True)
 
- if __name__ == "__main__":
-     main()
+if __name__ == "__main__":
+    main()
