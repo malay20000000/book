@@ -156,21 +156,19 @@ def main():
         ["Book Title", "Author"],
         key="search_type"
     )
-    search_query_author = st.sidebar.text_input("Search for an author:", key="author_search")
-    filtered_authors = data['authors'][data['authors'].str.contains(search_query_author, case=False, na=False)] if search_query_author else data['authors']
-    
+
     # Dynamic dropdown based on search type
     if search_type == "Book Title":
         query = st.sidebar.selectbox(
             "Select a book:",
-            options=data.unique(),
+            options=data['title'].unique(),
             key="book_dropdown"
         )
         by = 'title'
     else:
         query = st.sidebar.selectbox(
             "Select an author:",
-            options=filtered_authors.unique(),
+            options=data['authors'].unique(),
             key="author_dropdown"
         )
         by = 'author'
