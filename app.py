@@ -140,8 +140,6 @@ def main():
 
     # Load data
     data = load_data()
-    search_query_author = st.sidebar.text_input("Search for an author:", key="author_search")
-    filtered_authors = data['authors'][data['authors'].str.contains(search_query_author, case=False, na=False)] if search_query_author else data['authors']
     
     if data.empty:
         st.error("No data available to display. Please check the CSV file.")
@@ -158,7 +156,9 @@ def main():
         ["Book Title", "Author"],
         key="search_type"
     )
-
+    search_query_author = st.sidebar.text_input("Search for an author:", key="author_search")
+    filtered_authors = data['authors'][data['authors'].str.contains(search_query_author, case=False, na=False)] if search_query_author else data['authors']
+    
     # Dynamic dropdown based on search type
     if search_type == "Book Title":
         query = st.sidebar.selectbox(
