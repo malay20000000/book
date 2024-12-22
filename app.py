@@ -134,6 +134,7 @@ def load_data():
         st.error(f"Error loading data: {e}")
         return pd.DataFrame()
 
+# Inside the main() function, replace the dynamic dropdown with a searchable input
 def main():
     st.title("📚 Book Buddy - Your Personal Book Recommender")
     st.markdown("#### Discover your next favorite read!")
@@ -157,24 +158,36 @@ def main():
         key="search_type"
     )
 
-    # Search box with dynamic suggestions
+    # Initialize query variable
+    query = ""
+
+    # Searchable input for Book Title or Author
     if search_type == "Book Title":
-        user_input = st.sidebar.text_input("Search for a book:", key="book_search")
-        filtered_titles = data['title'][data['title'].str.contains(user_input, case=False, na=False)].unique()
-        st.sidebar.write("Suggestions:")
-        for title in filtered_titles[:5]:  # Show up to 5 suggestions
-            if st.sidebar.button(title):
-                user_input = title  # Update input with clicked suggestion
+        # Input box for book title
+        query = st.sidebar.text_input("Search for a book title:", key="book_search")
+
+        # Show suggestions for book titles
+        suggestions = data[data['title'].str.contains(query, case=False, na=False)]['title'].unique()
+        for suggestion in suggestions[:5]:  # Limit to top 5 suggestions
+            if st.sidebar.button(suggestion, key=f"book_{suggestion}"):
+                query = suggestion
+                st.sidebar.text_input("Search for a book title:", value=query, key="book_search_updated")
+
         by = 'title'
     else:
-        user_input = st.sidebar.text_input("Search for an author:", key="author_search")
-        filtered_authors = data['authors'][data['authors'].str.contains(user_input, case=False, na=False)].unique()
-        st.sidebar.write("Suggestions:")
-        for author in filtered_authors[:5]:  # Show up to 5 suggestions
-            if st.sidebar.button(author):
-                user_input = author  # Update input with clicked suggestion
+        # Input box for author
+        query = st.sidebar.text_input("Search for an author:", key="author_search")
+
+        # Show suggestions for authors
+        suggestions = data[data['authors'].str.contains(query, case=False, na=False)]['authors'].unique()
+        for suggestion in suggestions[:5]:  # Limit to top 5 suggestions
+            if st.sidebar.button(suggestion, key=f"author_{suggestion}"):
+                query = suggestion
+                st.sidebar.text_input("Search for an author:", value=query, key="author_search_updated")
+
         by = 'author'
 
+    # Number of recommendations slider
     n_recommendations = st.sidebar.slider(
         "Number of recommendations:",
         min_value=1,
@@ -183,65 +196,66 @@ def main():
     )
 
     # Get recommendations
-    if user_input and st.sidebar.button("Get Recommendations"):
-        recommendations = recommender.recommend_books(user_input, by, n_recommendations)
+    if query and st.sidebar.button("Get Recommendations"):
+        recommendations = recommender.recommend_books(query, by, n_recommendations)
         
-        if recommendations:
-            # Display recommendations in a grid
-            for i, book in enumerate(recommendations, 1):
-                with st.container():
+        # Display recommendations in a grid
+        for i, book in enumerate(recommendations, 1):
+            with st.container():
+                st.markdown(f"""
+                <div class="recommendation-card">
+                    <h3>{i}. {book['title']}</h3>
+                    <p><strong>Author(s):</strong> {book['authors']}</p>
+                    <p><strong>Similarity Score:</strong> {book['similarity']:.2f}</p>
+                </div>
+                """, unsafe_allow_html=True)
+
+                # Create three columns for metrics
+                col1, col2, col3 = st.columns(3)
+
+                with col1:
                     st.markdown(f"""
-                    <div class="recommendation-card">
-                        <h3>{i}. {book['title']}</h3>
-                        <p><strong>Author(s):</strong> {book['authors']}</p>
-                        <p><strong>Similarity Score:</strong> {book['similarity']:.2f}</p>
+                    <div class="metric-card">
+                        <h4>Rating</h4>
+                        <h2>⭐ {book['average_rating']:.2f}</h2>
                     </div>
                     """, unsafe_allow_html=True)
 
-                    # Create three columns for metrics
-                    col1, col2, col3 = st.columns(3)
+                with col2:
+                    st.markdown(f"""
+                    <div class="metric-card">
+                        <h4>Pages</h4>
+                        <h2>📄 {book['num_pages']}</h2>
+                    </div>
+                    """, unsafe_allow_html=True)
 
-                    with col1:
-                        st.markdown(f"""
-                        <div class="metric-card">
-                            <h4>Rating</h4>
-                            <h2>⭐ {book['average_rating']:.2f}</h2>
-                        </div>
-                        """, unsafe_allow_html=True)
+                with col3:
+                    st.markdown(f"""
+                    <div class="metric-card">
+                        <h4>Reviews</h4>
+                        <h2>📊 {book['ratings_count']:,}</h2>
+                    </div>
+                    """, unsafe_allow_html=True)
 
-                    with col2:
-                        st.markdown(f"""
-                        <div class="metric-card">
-                            <h4>Pages</h4>
-                            <h2>📄 {book['num_pages']}</h2>
-                        </div>
-                        """, unsafe_allow_html=True)
+        # Visualization section
+        st.subheader("📊 Visualization")
 
-                    with col3:
-                        st.markdown(f"""
-                        <div class="metric-card">
-                            <h4>Reviews</h4>
-                            <h2>📊 {book['ratings_count']:,}</h2>
-                        </div>
-                        """, unsafe_allow_html=True)
+        # Create rating distribution plot
+        fig_ratings = px.bar(
+            pd.DataFrame(recommendations),
+            x='title',
+            y='average_rating',
+            title='Ratings Comparison',
+            labels={'title': 'Book Title', 'average_rating': 'Average Rating'},
+            color='average_rating',
+            color_continuous_scale='reds'
+        )
+        fig_ratings.update_layout(showlegend=False)
+        st.plotly_chart(fig_ratings, use_container_width=True)
 
-            # Visualization section
-            st.subheader("📊 Visualization")
+if __name__ == "__main__":
+    main()
 
-            # Create rating distribution plot
-            fig_ratings = px.bar(
-                pd.DataFrame(recommendations),
-                x='title',
-                y='average_rating',
-                title='Ratings Comparison',
-                labels={'title': 'Book Title', 'average_rating': 'Average Rating'},
-                color='average_rating',
-                color_continuous_scale='reds'
-            )
-            fig_ratings.update_layout(showlegend=False)
-            st.plotly_chart(fig_ratings, use_container_width=True)
-        else:
-            st.warning("No recommendations found for your query. Please try a different search.")
 
 
 if __name__ == "__main__":
