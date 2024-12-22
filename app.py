@@ -134,58 +134,7 @@ def load_data():
         st.error(f"Error loading data: {e}")
         return pd.DataFrame()
 
-def main():
-    st.title("📚 Book Buddy - Your Personal Book Recommender")
-    st.markdown("#### Discover your next favorite read!")
-
-    # Load data
-    data = load_data()
-    
-    if data.empty:
-        st.error("No data available to display. Please check the CSV file.")
-        return
-
-    recommender = BookRecommender(data)
-
-    # Sidebar
-    st.sidebar.header("Recommendation Settings")
-
-    # Search type selection
-    search_type = st.sidebar.radio(
-        "Search by:",
-        ["Book Title", "Author"],
-        key="search_type"
-    )
-
-    # Search box with dynamic suggestions
-    if search_type == "Book Title":
-        user_input = st.sidebar.text_input("Search for a book:", key="book_search")
-        filtered_titles = data['title'][data['title'].str.contains(user_input, case=False, na=False)].unique()
-        st.sidebar.write("Suggestions:")
-        for title in filtered_titles[:5]:  # Show up to 5 suggestions
-            if st.sidebar.button(title):
-                user_input = title  # Update input with clicked suggestion
-        by = 'title'
-    else:
-        user_input = st.sidebar.text_input("Search for an author:", key="author_search")
-        filtered_authors = data['authors'][data['authors'].str.contains(user_input, case=False, na=False)].unique()
-        st.sidebar.write("Suggestions:")
-        for author in filtered_authors[:5]:  # Show up to 5 suggestions
-            if st.sidebar.button(author):
-                user_input = author  # Update input with clicked suggestion
-        by = 'author'
-
-    n_recommendations = st.sidebar.slider(
-        "Number of recommendations:",
-        min_value=1,
-        max_value=10,
-        value=5
-    )
-
-    # Get recommendations
-    if user_input and st.sidebar.button("Get Recommendations"):
-        recommendations = recommender.recommend_books(user_input, by, n_recommendations)
-        
+def re(recommendations):
         if recommendations:
             # Display recommendations in a grid
             for i, book in enumerate(recommendations, 1):
@@ -243,6 +192,66 @@ def main():
         else:
             st.warning("No recommendations found for your query. Please try a different search.")
 
+
+def main():
+    st.title("📚 Book Buddy - Your Personal Book Recommender")
+    st.markdown("#### Discover your next favorite read!")
+
+    # Load data
+    data = load_data()
+    
+    if data.empty:
+        st.error("No data available to display. Please check the CSV file.")
+        return
+
+    recommender = BookRecommender(data)
+
+    # Sidebar
+    st.sidebar.header("Recommendation Settings")
+
+    # Search type selection
+    search_type = st.sidebar.radio(
+        "Search by:",
+        ["Book Title", "Author"],
+        key="search_type"
+    )
+
+    # Search box with dynamic suggestions
+    if search_type == "Book Title":
+        user_input = st.sidebar.text_input("Search for a book:", key="book_search")
+        filtered_titles = data['title'][data['title'].str.contains(user_input, case=False, na=False)].unique()
+        st.sidebar.write("Suggestions:")
+        by = 'title'
+        for title in filtered_titles[:5]:  # Show up to 5 suggestions
+            if st.sidebar.button(title):
+                user_input = title  # Update input with clicked suggestion
+                recommendations = recommender.recommend_books(user_input, by, n_recommendations)
+                re(recommendations)
+    else:
+        user_input = st.sidebar.text_input("Search for an author:", key="author_search")
+        filtered_authors = data['authors'][data['authors'].str.contains(user_input, case=False, na=False)].unique()
+        st.sidebar.write("Suggestions:")
+        by = 'author'
+        for author in filtered_authors[:5]:  # Show up to 5 suggestions
+            if st.sidebar.button(author):
+                user_input = author  # Update input with clicked suggestion
+                recommendations = recommender.recommend_books(user_input, by, n_recommendations)
+                re(recommendations)
+        
+    
+    n_recommendations = st.sidebar.slider(
+        "Number of recommendations:",
+        min_value=1,
+        max_value=10,
+        value=5
+    )
+
+    
+    # Get recommendations
+    if user_input and st.sidebar.button("Get Recommendations"):
+        recommendations = recommender.recommend_books(user_input, by, n_recommendations)
+        re(recommendations)
+        
 
 if __name__ == "__main__":
     main()
