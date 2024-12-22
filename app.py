@@ -225,7 +225,7 @@ def main():
         for title in filtered_titles[:5]:  # Show up to 5 suggestions
             if st.sidebar.button(title):
                 user_input = title  # Update input with clicked suggestion
-                recommendations = recommender.recommend_books(user_input, by, n_recommendations)
+                recommendations = recommender.recommend_books(user_input, by)
                 re(recommendations)
     else:
         user_input = st.sidebar.text_input("Search for an author:", key="author_search")
@@ -235,21 +235,13 @@ def main():
         for author in filtered_authors[:5]:  # Show up to 5 suggestions
             if st.sidebar.button(author):
                 user_input = author  # Update input with clicked suggestion
-                recommendations = recommender.recommend_books(user_input, by, n_recommendations)
+                recommendations = recommender.recommend_books(user_input, by)
                 re(recommendations)
         
     
-    n_recommendations = st.sidebar.slider(
-        "Number of recommendations:",
-        min_value=1,
-        max_value=10,
-        value=5
-    )
-
-    
     # Get recommendations
     if user_input and st.sidebar.button("Get Recommendations"):
-        recommendations = recommender.recommend_books(user_input, by, n_recommendations)
+        recommendations = recommender.recommend_books(user_input, by)
         re(recommendations)
         
 
