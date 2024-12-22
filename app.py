@@ -159,19 +159,29 @@ def main():
 
     # Dynamic dropdown based on search type
     if search_type == "Book Title":
-        query = st.sidebar.text_input(
-            "Search for a book title:",
-            placeholder="Type the book title here...",
-            key="book_search_input"
-        )
-        by = 'title'
+        placeholder_text = "Type the book title here..."
+        options = data['title'].unique()
     else:
-        query = st.sidebar.text_input(
-            "Search for an author:",
-            placeholder="Type the author's name here...",
-            key="author_search_input"
-        )
-        by = 'author'
+        placeholder_text = "Type the author's name here..."
+        options = data['authors'].unique()
+    
+    query = st.sidebar.text_input(
+        f"Search for a {'book title' if search_type == 'Book Title' else 'author'}:",
+        placeholder=placeholder_text,
+        key="search_input"
+    )
+    
+    # Show suggestions based on user input
+    if query:
+        matching_options = [option for option in options if query.lower() in option.lower()]
+        if matching_options:
+            st.sidebar.write("Suggestions:")
+            for match in matching_options[:5]:  # Show top 5 matches
+                st.sidebar.write(f"- {match}")
+        else:
+            st.sidebar.write("No matches found.")
+    else:
+        st.sidebar.write("Start typing to see suggestions.")
 
 
     n_recommendations = st.sidebar.slider(
